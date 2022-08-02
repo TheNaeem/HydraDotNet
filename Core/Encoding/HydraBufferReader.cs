@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace HydraDotNet.Core.Encoding;
@@ -12,20 +14,22 @@ internal class HydraBufferReader : IDisposable
 
     private BinaryReader _reader;
 
-    public HydraBufferReader(byte[] buffer)
-    {
-        _reader = new(new MemoryStream(buffer));
-    }
-
+    public HydraBufferReader(byte[] buffer) => _reader = new(new MemoryStream(buffer));
+    
     public HydraBufferReader(Stream buffer)
     {
+        if (!buffer.CanRead)
+        {
+            throw new AccessViolationException("Stream passed into HydraBufferReader does not have read access");
+        }
+
         _reader = new(buffer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe T Read<T>() where T : unmanaged
+    public T Read<T>() where T : unmanaged
     {
-        var buf = _reader.ReadBytes(sizeof(T));
+        var buf = _reader.ReadBytes(Marshal.SizeOf<T>());
 
         return MemoryMarshal.Read<T>(buf);
     }

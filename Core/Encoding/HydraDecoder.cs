@@ -1,5 +1,8 @@
 ﻿using HydraDotNet.Core.Compression;
 using HydraDotNet.Core.Objects;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace HydraDotNet.Core.Encoding;
 
@@ -7,18 +10,19 @@ public class HydraDecoder : IDisposable
 {
     private HydraBufferReader _buf;
 
-    public HydraDecoder(Stream encodedStream)
-    {
-        _buf = new(encodedStream);
-    }
-
+    public HydraDecoder(Stream encodedStream) => _buf = new(encodedStream);
+    
     private IEnumerable<object?> ReadArray(int count)
     {
         List<object?> ret = new(count);
 
         for (int i = 0; i < count; i++)
         {
-            ret.Add(ReadValue());
+            var val = ReadValue();
+
+            if (val is null) continue;
+
+            ret.Add(val);
         }
 
         return ret;
