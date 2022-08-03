@@ -35,6 +35,13 @@ internal class HydraBufferReader : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ushort ReadUShort()
+    {
+        var ret = _reader.ReadUInt16();
+        return (ushort)((ushort)((ret & 0xff) << 8) | ((ret >> 8) & 0xff));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] Read(int length) => _reader.ReadBytes(length);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string ReadString() => _reader.ReadString();
