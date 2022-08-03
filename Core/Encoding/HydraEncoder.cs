@@ -1,40 +1,70 @@
 ﻿using HydraDotNet.Core.Compression;
 using HydraDotNet.Core.Objects;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace HydraDotNet.Core.Encoding;
 
-public class HydraEncoder
+public class HydraEncoder : IDisposable
 {
-    private HydraBufferWriter _buf;
+    private readonly HydraBufferWriter _writer;
 
-    public HydraEncoder(Stream buffer) => _buf = new(buffer);
+    public HydraEncoder() => _writer = new(new MemoryStream());
 
-    private void WriteMap(Dictionary<object, object> map)
+    private void WriteArray(IEnumerable array)
+    {
+        int len = 0;
+
+        foreach (var _ in array)
+            len++;
+
+        if (len <= byte.MaxValue)
+        {
+            _writer.WriteByte(0x50);
+            _writer.Write((byte)len);
+        }
+        else if (len <= ushort.MaxValue)
+        {
+            _writer.WriteByte(0x51);
+            _writer.Write((ushort)len);
+        }
+        else
+        {
+            _writer.WriteByte(0x52);
+            _writer.Write(len);
+        }
+
+        foreach (var i in array)
+            WriteValue(i);
+    }
+
+    private void WriteMap(IDictionary map)
     {
         var len = map.Count;
 
         if (len <= byte.MaxValue)
         {
-            _buf.WriteByte(0x60);
-            _buf.Write((byte)len);
+            _writer.WriteByte(0x60);
+            _writer.Write((byte)len);
         }
         else if (len <= ushort.MaxValue)
         {
-            _buf.WriteByte(0x61);
-            _buf.Write((ushort)len);
+            _writer.WriteByte(0x61);
+            _writer.Write((ushort)len);
         }
         else
         {
-            _buf.WriteByte(0x62);
-            _buf.Write(len);
+            _writer.WriteByte(0x62);
+            _writer.Write(len);
         }
 
-        foreach (var (k, v) in map)
+        foreach (DictionaryEntry entry in map)
         {
-            WriteValue(k);
-            WriteValue(v);
+            WriteValue(entry.Key);
+            WriteValue(entry.Value ?? new());
         }
     }
 
@@ -44,21 +74,21 @@ public class HydraEncoder
 
         if (len <= byte.MaxValue)
         {
-            _buf.WriteByte(0x33);
-            _buf.Write((byte)len);
+            _writer.WriteByte(0x33);
+            _writer.Write((byte)len);
         }
         else if (len <= ushort.MaxValue)
         {
-            _buf.WriteByte(0x34);
-            _buf.Write((ushort)len);
+            _writer.WriteByte(0x34);
+            _writer.Write((ushort)len);
         }
         else
         {
-            _buf.WriteByte(0x35);
-            _buf.Write(len);
+            _writer.WriteByte(0x35);
+            _writer.Write(len);
         }
 
-        _buf.Write(bytes, 0, len);
+        _writer.Write(bytes, 0, len);
     }
 
     private void WriteString(string val)
@@ -67,69 +97,73 @@ public class HydraEncoder
 
         if (len <= byte.MaxValue)
         {
-            _buf.WriteByte(0x30);
-            _buf.Write((byte)len);
+            _writer.WriteByte(0x30);
+            _writer.Write((byte)len);
         }
         else if (len <= ushort.MaxValue)
         {
-            _buf.WriteByte(0x31);
-            _buf.Write((ushort)len);
+            _writer.WriteByte(0x31);
+            _writer.Write((ushort)len);
         }
         else
         {
-            _buf.WriteByte(0x32);
-            _buf.Write(len);
+            _writer.WriteByte(0x32);
+            _writer.Write(len);
         }
 
-        _buf.Write(System.Text.Encoding.ASCII.GetBytes(val), 0, len);
+        _writer.Write(System.Text.Encoding.ASCII.GetBytes(val), 0, len);
     }
     
+    /// <summary>
+    /// Writes encoded data to the buffer.
+    /// </summary>
+    /// <param name="value">Value to be encoded.</param>
     public void WriteValue(object value)
     {
         switch (value)
         {
             case bool val:
-                _buf.WriteByte((byte)(val ? 0x2 : 0x3));
+                _writer.WriteByte((byte)(val ? 0x2 : 0x3));
                 break;
             case char val:
-                _buf.WriteByte(0x10);
-                _buf.WriteByte((byte)val);
+                _writer.WriteByte(0x10);
+                _writer.WriteByte((byte)val);
                 break;
             case byte val:
-                _buf.WriteByte(0x11);
-                _buf.Write(val);
+                _writer.WriteByte(0x11);
+                _writer.Write(val);
                 break;
             case short val:
-                _buf.WriteByte(0x12);
-                _buf.Write(val);
+                _writer.WriteByte(0x12);
+                _writer.Write(val);
                 break;
             case ushort val:
-                _buf.WriteByte(0x13);
-                _buf.Write(val);
+                _writer.WriteByte(0x13);
+                _writer.Write(val);
                 break;
             case int val:
-                _buf.WriteByte(0x14);
-                _buf.Write(val);
+                _writer.WriteByte(0x14);
+                _writer.Write(val);
                 break;
             case uint val:
-                _buf.WriteByte(0x15);
-                _buf.Write(val);
+                _writer.WriteByte(0x15);
+                _writer.Write(val);
                 break;
             case long val:
-                _buf.WriteByte(0x16);
-                _buf.Write(val);
+                _writer.WriteByte(0x16);
+                _writer.Write(val);
                 break;
             case ulong val:
-                _buf.WriteByte(0x17);
-                _buf.Write(val);
+                _writer.WriteByte(0x17);
+                _writer.Write(val);
                 break;
             case float val:
-                _buf.WriteByte(0x20);
-                _buf.Write(val);
+                _writer.WriteByte(0x20);
+                _writer.Write(val);
                 break;
             case double val:
-                _buf.WriteByte(0x21);
-                _buf.Write(val);
+                _writer.WriteByte(0x21);
+                _writer.Write(val);
                 break;
             case string val:
                 WriteString(val);
@@ -137,22 +171,99 @@ public class HydraEncoder
             case byte[] val:
                 WriteBytes(val);
                 break;
-            case Dictionary<object, object> val:
+            case IDictionary val:
                 WriteMap(val);
                 break;
+            case IEnumerable val:
+                WriteArray(val);
+                break;
             case HydraCompressedObject val:
-                _buf.WriteByte(0x67);
-                _buf.Write((byte)val.Format);
+                _writer.WriteByte(0x67);
+                _writer.Write((byte)val.Format);
                 WriteBytes(val.CompressedData);
                 break;
             case HydraCalendarControl val:
                 if (val.Def is not null && val.Rendered is not null)
                 {
-                    _buf.WriteByte(0x69);
+                    _writer.WriteByte(0x69);
                     WriteValue(val.Def);
                     WriteValue(val.Rendered);
                 }
                 break;
+            default:
+                WriteObjectDefault(value);
+                break;
         };
+    }
+
+    /// <summary>
+    /// Write an object of any type as a dictionary to the buffer. Main purpose is for user defined types, mostly models. 
+    /// </summary>
+    private void WriteObjectDefault(object obj)
+    {
+        var map = new Dictionary<string, object>();
+
+        var type = obj.GetType();
+        var properties = type.GetProperties();
+
+        var len = properties.Length;
+
+        if (len <= byte.MaxValue)
+        {
+            _writer.WriteByte(0x60);
+            _writer.Write((byte)len);
+        }
+        else if (len <= ushort.MaxValue)
+        {
+            _writer.WriteByte(0x61);
+            _writer.Write((ushort)len);
+        }
+        else
+        {
+            _writer.WriteByte(0x62);
+            _writer.Write(len);
+        }
+
+        foreach (var prop in properties)
+        {
+            var val = prop.GetValue(obj);
+
+            if (val is null) continue;
+
+            WriteValue(prop.Name);
+            WriteValue(val);
+        }
+    }
+
+    public void Dispose() => _writer.Dispose();
+
+    /// <summary>
+    /// Creates a copy of the encoded buffer.
+    /// </summary>
+    /// <returns>Byte array of encoded data.</returns>
+    public byte[] GetBuffer()
+    {
+        var pos = _writer.BaseStream.Position;
+
+        _writer.BaseStream.Seek(0, SeekOrigin.Begin);
+
+        using var ms = new MemoryStream();
+        _writer.BaseStream.CopyTo(ms);
+
+        _writer.BaseStream.Seek(pos, SeekOrigin.Begin);
+
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Asynchronously creates a copy of the encoded buffer.
+    /// </summary>
+    /// <returns>Byte array of encoded data.</returns>
+    public async Task<byte[]> GetBufferAsync()
+    {
+        await using var ms = new MemoryStream();
+        await _writer.BaseStream.CopyToAsync(ms);
+
+        return ms.ToArray();
     }
 }

@@ -11,7 +11,8 @@ public class HydraDecoder : IDisposable
     private HydraBufferReader _buf;
 
     public HydraDecoder(Stream encodedStream) => _buf = new(encodedStream);
-    
+    public HydraDecoder(byte[] encodedBuffer) => _buf = new(encodedBuffer);
+
     private IEnumerable<object?> ReadArray(int count)
     {
         List<object?> ret = new(count);
@@ -76,6 +77,10 @@ public class HydraDecoder : IDisposable
         //TODO this
     }
 
+    /// <summary>
+    /// Reads Hydra encoded data from the buffer.
+    /// </summary>
+    /// <returns>Decoded object.</returns>
     public object? ReadValue()
     {
         if (_buf.EndOfRead) return null;
