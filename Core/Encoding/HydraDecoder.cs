@@ -15,7 +15,7 @@ public class HydraDecoder : IDisposable
 
     private IEnumerable<object?> ReadArray(int count)
     {
-        List<object?> ret = new(count);
+        var ret = new object?[count];
 
         for (int i = 0; i < count; i++)
         {
@@ -23,7 +23,7 @@ public class HydraDecoder : IDisposable
 
             if (val is null) continue;
 
-            ret.Add(val);
+            ret[i] = val;
         }
 
         return ret;
@@ -78,7 +78,7 @@ public class HydraDecoder : IDisposable
     }
 
     /// <summary>
-    /// Reads a Hydra decoded Dictionary map to an object with a matching type. Main purpose is for data models.
+    /// Reads a Hydra decoded Dictionary map to an object with a matching type. Main purpose is for data models. 
     /// </summary>
     /// <param name="baseObject">Object to be read to.</param>
     /// <param name="dict">Objects map being read from.</param>
@@ -95,23 +95,46 @@ public class HydraDecoder : IDisposable
             if (!dict.TryGetValue(prop.Name, out var obj) || obj is null)
                 continue;
 
+            if (obj is not Dictionary<object, object?> objDict)
+            {
+                if (prop.PropertyType.IsArray)
+                {
+                    var elementType = prop.PropertyType.GetElementType();
+
+                    if (elementType is null)
+                        throw new NullReferenceException("Element type is null despite the property being an array.");
+
+                    var objArr = (Array)obj;
+                    var newArray = Array.CreateInstance(elementType, objArr.Length);
+
+                    objArr.CopyTo(newArray, 0);
+
+                    prop.SetValue(baseObject, newArray);
+                    return;
+                }
+
+                prop.SetValue(baseObject, obj);
+                return;
+            }
+
             var objectVal = prop.GetValue(baseObject);
 
             if (objectVal is null)
             {
                 if (prop.PropertyType == typeof(string))
+                {
                     objectVal = string.Empty;
-                else objectVal = Activator.CreateInstance(prop.PropertyType);
+                }
+                else
+                {
+                    objectVal = Activator.CreateInstance(prop.PropertyType);
+                }
             }
 
-            if (obj is Dictionary<object, object?> objDict)
-            {
-                if (objectVal is not null)
-                    ReadToObject(ref objectVal, objDict);
+            if (objectVal is not null)
+                ReadToObject(ref objectVal, objDict);
 
-                prop.SetValue(baseObject, objectVal);
-            }
-            else prop.SetValue(baseObject, obj);
+            prop.SetValue(baseObject, objectVal);
         }
     }
 

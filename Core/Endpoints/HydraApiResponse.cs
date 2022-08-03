@@ -35,7 +35,7 @@ public class HydraApiResponse
     }
 
     /// <summary>
-    /// Returns a deserialized response for a generic type. Only works for JSON or binary responses.
+    /// Returns a deserialized response for a generic type. Try to avoid this if you know your response is binary.
     /// </summary>
     /// <returns>An instance of the type passed into the function. Can return default.</returns>
     public T? GetContent<T>() where T : class, new()
