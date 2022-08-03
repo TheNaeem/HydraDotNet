@@ -78,9 +78,47 @@ public class HydraDecoder : IDisposable
     }
 
     /// <summary>
+    /// Reads a Hydra decoded Dictionary map to an object with a matching type. Main purpose is for data models.
+    /// </summary>
+    /// <param name="baseObject">Object to be read to.</param>
+    /// <param name="dict">Objects map being read from.</param>
+    public static void ReadToObject(ref object baseObject, Dictionary<object, object?> dict)
+    {
+        if (baseObject is null) return;
+
+        var type = baseObject.GetType();
+
+        if (type is null) return;
+
+        foreach (var prop in type.GetProperties())
+        {
+            if (!dict.TryGetValue(prop.Name, out var obj) || obj is null)
+                continue;
+
+            var objectVal = prop.GetValue(baseObject);
+
+            if (objectVal is null)
+            {
+                if (prop.PropertyType == typeof(string))
+                    objectVal = string.Empty;
+                else objectVal = Activator.CreateInstance(prop.PropertyType);
+            }
+
+            if (obj is Dictionary<object, object?> objDict)
+            {
+                if (objectVal is not null)
+                    ReadToObject(ref objectVal, objDict);
+
+                prop.SetValue(baseObject, objectVal);
+            }
+            else prop.SetValue(baseObject, obj);
+        }
+    }
+
+    /// <summary>
     /// Reads Hydra encoded data from the buffer.
     /// </summary>
-    /// <returns>Decoded object.</returns>
+    /// <returns>Decoded object. Most likely a Dictionary. Can be null.</returns>
     public object? ReadValue()
     {
         if (_buf.EndOfRead) return null;
