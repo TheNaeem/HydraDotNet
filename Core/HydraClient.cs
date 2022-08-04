@@ -13,6 +13,7 @@ public class HydraClient
     private string? _overrideApiKey;
     private RestClient _client;
     private HydraClientConfiguration _config;
+    private EpicAuthContainer _auth;
 
     public string ApiKey 
     { 
@@ -24,8 +25,9 @@ public class HydraClient
         }
     }
 
-    public HydraClient(HydraClientConfiguration? config = null, string? apiKey = null)
+    public HydraClient(EpicAuthContainer epicAuth, HydraClientConfiguration? config = null, string? apiKey = null)
     {
+        _auth = epicAuth;
         _overrideApiKey = apiKey;
 
         if (config is null) config = new();
