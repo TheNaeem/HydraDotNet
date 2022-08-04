@@ -5,8 +5,9 @@ namespace HydraDotNet.Core.Authentication;
 
 public class EpicAuthContainer
 {
-    private Action<string>? _onRefreshTokenUpdated;
-    private string? _accessToken;
+    protected Action<string>? _onRefreshTokenUpdated;
+    protected string? _scope;
+    protected string? _accessToken;
     public string AccessToken
     {
         get
@@ -20,10 +21,18 @@ public class EpicAuthContainer
         }
     }
 
-    private string RefreshToken { get; set; }
+    protected string RefreshToken { get; set; }
     private Stopwatch Sw { get; set; }
     private TimeSpan Expiration { get; set; }
     private string AuthClient { get; set; }
+
+    protected EpicAuthContainer(string authClient)
+    {
+        AuthClient = authClient;
+        RefreshToken = string.Empty;
+        _accessToken = string.Empty;
+        Sw = new();
+    }
 
     /// <summary>
     /// Creates an auth which automatically updates the access token when necessary.
@@ -41,9 +50,9 @@ public class EpicAuthContainer
         UpdateToken();
     }
 
-    private void UpdateToken()
+    protected void UpdateToken()
     {
-        var refreshResponse = Epic.GetAccessFromRefresh(RefreshToken, AuthClient);
+        var refreshResponse = Epic.GetAccessFromRefresh(RefreshToken, AuthClient, _scope);
 
         if (refreshResponse is null ||
             string.IsNullOrEmpty(refreshResponse.access_token) ||

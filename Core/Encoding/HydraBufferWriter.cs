@@ -19,8 +19,11 @@ public class HydraBufferWriter : BinaryWriter
     {
         ReadOnlySpan<byte> view = new(&val, sizeof(T));
 
-        Write(view);
+        base.Write(view);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override void Write(ushort val) => base.Write((ushort)((ushort)((val & 0xff) << 8) | ((val >> 8) & 0xff)));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte val) => Write(val);

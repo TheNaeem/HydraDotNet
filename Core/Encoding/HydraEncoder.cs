@@ -201,8 +201,6 @@ public class HydraEncoder : IDisposable, IAsyncDisposable
     /// </summary>
     private void WriteObjectDefault(object obj)
     {
-        var map = new Dictionary<string, object>();
-
         var type = obj.GetType();
         var properties = type.GetProperties();
 
@@ -262,8 +260,14 @@ public class HydraEncoder : IDisposable, IAsyncDisposable
     /// <returns>Byte array of encoded data.</returns>
     public async Task<byte[]> GetBufferAsync()
     {
+        var pos = _writer.BaseStream.Position;
+
+        _writer.BaseStream.Seek(0, SeekOrigin.Begin);
+
         await using var ms = new MemoryStream();
         await _writer.BaseStream.CopyToAsync(ms);
+
+        _writer.BaseStream.Seek(pos, SeekOrigin.Begin);
 
         return ms.ToArray();
     }

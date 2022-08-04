@@ -4,6 +4,7 @@ using HydraDotNet.Core.Endpoints;
 using HydraDotNet.Core.Models;
 using RestSharp;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace HydraDotNet.Core;
@@ -31,10 +32,10 @@ public class HydraClient
     /// <summary>
     /// Hydra client constructor.
     /// </summary>
-    /// <param name="epicAuth">Container with Epic games authentication information.</param>
+    /// <param name="epicAuth">Container with external Epic games authentication information.</param>
     /// <param name="config">Optional: Configuration for Hydra client.</param>
     /// <param name="apiKey">Optional: Overrides the api key.</param>
-    public HydraClient(EpicAuthContainer epicAuth, HydraClientConfiguration? config = null, string? apiKey = null)
+    public HydraClient(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null, string? apiKey = null)
     {
         _auth = epicAuth;
         _overrideApiKey = apiKey;
@@ -56,7 +57,7 @@ public class HydraClient
     /// <param name="onLoginSuccessful">Optional: Executes after logging in successfully.</param>
     /// <param name="onLoginFailed">Optional: Executes if logging in fails. If this is not passed in then an exception will be thrown on failure.</param>
     /// <returns></returns>
-    public async Task LoginAsync(Action? onLoginSuccessful = null, Action<Exception>? onLoginFailed = null)
+    public async Task LoginAsync(Action? onLoginSuccessful = null, Action<string?, HttpStatusCode, Exception>? onLoginFailed = null)
     {
         var body = new HydraAccessRequestBody();
         body.auth.epic = _auth.AccessToken;
@@ -67,19 +68,18 @@ public class HydraClient
         var accessEndpoint = new HydraEndpoint("/access", await encoder.GetBufferAsync(), Method.Post);
 
         var response = await DoRequestAsync(accessEndpoint);
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
+
+        if (response.StatusCode != HttpStatusCode.OK)
         {
             var ex = new TaskCanceledException($"Access token request unsuccessful with response status code {response.StatusCode}");
 
             if (onLoginFailed is null)
                 throw ex;
 
-            onLoginFailed(ex);
+            onLoginFailed(response.GetContentString(), response.StatusCode, ex);
 
             return;
         }
-
-        Console.WriteLine(response.GetContentString());
 
         if (onLoginSuccessful is not null)
             onLoginSuccessful();
