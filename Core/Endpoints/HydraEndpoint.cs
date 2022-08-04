@@ -7,9 +7,19 @@ public class HydraEndpoint
 {
     public RestRequest Request { get; init; }
 
-    public HydraEndpoint(string path)
+    public HydraEndpoint(string path, byte[] encodedBody, Method method = Method.Get)
     {
-        Request = new(path);
+        Request = new(path, method);
+        Request.RequestFormat = DataFormat.Binary;
+        Request.AddParameter("application/x-ag-binary", encodedBody, ParameterType.RequestBody);
+    }
+
+    public HydraEndpoint(string path, Method method = Method.Get, Parameter? param = null)
+    {
+        Request = new(path, method);
+
+        if (param is not null)
+            Request.AddParameter(param);
     }
 
     public RestResponse GetResponse(RestClient client)

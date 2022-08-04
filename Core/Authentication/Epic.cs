@@ -1,4 +1,4 @@
-﻿using HydraDotNet.Core.Objects;
+﻿using HydraDotNet.Core.Models;
 using RestSharp;
 
 namespace HydraDotNet.Core.Authentication;
@@ -38,7 +38,7 @@ public static class Epic
 
         request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
         request.AddHeader("Authorization", "basic " + authClient);
-        request.AddParameter("application/x-www-form-urlencoded", "grant_type=refresh_token&refresh_token=" + refreshToken, ParameterType.RequestBody);
+        request.AddParameter("application/x-www-form-urlencoded", "grant_type=refresh_token&token_type=eg1&refresh_token=" + refreshToken, ParameterType.RequestBody);
 
         return AccessTokenClient.Execute<EpicAccessTokenResponse>(request).Data;
     }

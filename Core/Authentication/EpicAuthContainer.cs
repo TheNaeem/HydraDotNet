@@ -5,6 +5,7 @@ namespace HydraDotNet.Core.Authentication;
 
 public class EpicAuthContainer
 {
+    private Action<string>? _onRefreshTokenUpdated;
     private string? _accessToken;
     public string AccessToken
     {
@@ -29,10 +30,12 @@ public class EpicAuthContainer
     /// </summary>
     /// <param name="refreshToken">Refresh token for the specified auth client.</param>
     /// <param name="authClient">Base64 encoded client id and secret.</param>
-    public EpicAuthContainer(string refreshToken, string authClient)
+    /// <param name="onRefreshTokenUpdated">Optional: Action that will be executed with the updated refresh token passed. Recommended for caching the refresh token.</param>
+    public EpicAuthContainer(string refreshToken, string authClient, Action<string>? onRefreshTokenUpdated = null)
     {
         RefreshToken = refreshToken;
         AuthClient = authClient;
+        _onRefreshTokenUpdated = onRefreshTokenUpdated;
         Sw = new();
 
         UpdateToken();
@@ -54,5 +57,8 @@ public class EpicAuthContainer
         Expiration = TimeSpan.FromSeconds(refreshResponse.expires_in.Value);
         RefreshToken = refreshResponse.refresh_token;
         _accessToken = refreshResponse.access_token;
+
+        if (_onRefreshTokenUpdated is not null)
+            _onRefreshTokenUpdated(RefreshToken);
     }
 }

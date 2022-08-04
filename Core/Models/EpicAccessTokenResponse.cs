@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HydraDotNet.Core.Objects;
+namespace HydraDotNet.Core.Models;
 
 public class EpicAccessTokenResponse
 {

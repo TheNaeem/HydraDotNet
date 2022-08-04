@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HydraDotNet.Core.Encoding;
 
-public class HydraEncoder : IDisposable
+public class HydraEncoder : IDisposable, IAsyncDisposable
 {
     private readonly HydraBufferWriter _writer;
 
@@ -236,6 +236,7 @@ public class HydraEncoder : IDisposable
     }
 
     public void Dispose() => _writer.Dispose();
+    public ValueTask DisposeAsync() => _writer.DisposeAsync();
 
     /// <summary>
     /// Creates a copy of the encoded buffer.
