@@ -2,6 +2,7 @@
 
 public class HydraDokkenEndpoint : HydraEndpoint
 {
+    public override bool UseNetworkToken => false;
     public override string BaseUrl => "https://dokken-api.wbagora.com";
     public override string ApiKey => "51586fdcbd214feb84b0e475b130fce0";
 

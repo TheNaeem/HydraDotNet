@@ -48,7 +48,7 @@ public class HydraClient
 
         var auth = new HydraAuthContainer(this);
 
-        if (response.StatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(auth.AccessToken)) // do this to test that everything is right
+        if (response.StatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(auth.NetworkToken) || string.IsNullOrEmpty(auth.Token)) // do this to test that everything is right
         {
             var ex = new TaskCanceledException($"Access token request unsuccessful with response status code {response.StatusCode}");
 
@@ -94,6 +94,27 @@ public class HydraClient
         var ret = await DoRequestAsync(req);
 
         return ret.GetContent<WarnerAccount>();
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves account information with a user id.
+    /// </summary>
+    /// <param name="id">Id of the account you are trying to retrieve.</param>
+    /// <returns></returns>
+    public async Task<HydraApiResponse> GetAccountByIdAsync(string id)
+    {
+        var body = new HydraAccountLookupRequestBody()
+        {
+            _model_update = true,
+            operations = new string[][] { new[] { "set", "data.LastLoginPlatform", "EPlatform::PC_Epic" } }  
+        };
+
+        await using var encoder = new HydraEncoder();
+        encoder.WriteValue(body);
+
+        var request = Endpoints.AccountLookup.CreateRequest(await encoder.GetBufferAsync(), Method.Put, id);
+
+        return await DoRequestAsync(request);
     }
 
     /// <summary>

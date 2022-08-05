@@ -8,8 +8,11 @@ namespace HydraDotNet.Core.Authentication;
 
 public class HydraAuthContainer : IAuthContainer
 {
-    protected string? _accessToken;
-    public string AccessToken
+    private string? _token;
+    private string? _networkToken;
+
+    public string Token => _token ?? string.Empty;
+    public string NetworkToken 
     {
         get
         {
@@ -18,7 +21,7 @@ public class HydraAuthContainer : IAuthContainer
                 UpdateToken();
             }
 
-            return _accessToken ?? string.Empty;
+            return _networkToken ?? string.Empty;
         }
     }
 
@@ -43,7 +46,7 @@ public class HydraAuthContainer : IAuthContainer
         UpdateToken();
     }
 
-    private HydraAuthTokenResponse? GetAccessToken(string profileToken)
+    private HydraAuthTokenResponse? GetNetworkAccessToken(string profileToken)
     {
         var body = new HydraAuthTokenRequestBody()
         {
@@ -69,10 +72,12 @@ public class HydraAuthContainer : IAuthContainer
 
         if (content is null ||
             content.wb_network is null ||
-            string.IsNullOrEmpty(content.wb_network.network_token))
+            string.IsNullOrEmpty(content.wb_network.network_token) ||
+            string.IsNullOrEmpty(content.token))
             return;
 
-        var response = GetAccessToken(content.wb_network.network_token);
+        _token = content.token;
+        var response = GetNetworkAccessToken(content.wb_network.network_token);
 
         if (response is null ||
             string.IsNullOrEmpty(response.access_token))
@@ -80,6 +85,6 @@ public class HydraAuthContainer : IAuthContainer
 
         Sw = Stopwatch.StartNew();
         Expiration = TimeSpan.FromSeconds(response.expires_in);
-        _accessToken = response.access_token;
+        _networkToken = response.access_token;
     }
 }

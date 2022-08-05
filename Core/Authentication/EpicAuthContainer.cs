@@ -5,8 +5,22 @@ namespace HydraDotNet.Core.Authentication;
 
 public class EpicAuthContainer : HydraAuthContainer
 {
+    protected string? _accessToken;
     protected Action<string>? _onRefreshTokenUpdated;
     protected string? _scope;
+
+    public string AccessToken
+    {
+        get
+        {
+            if (Sw.Elapsed >= Expiration)
+            {
+                UpdateToken();
+            }
+
+            return _accessToken ?? string.Empty;
+        }
+    }
 
     protected string RefreshToken { get; set; }
     private string AuthClient { get; set; }

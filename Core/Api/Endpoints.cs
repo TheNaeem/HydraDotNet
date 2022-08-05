@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace HydraDotNet.Core.Api;
+﻿namespace HydraDotNet.Core.Api;
 
 /// <summary>
 /// Global Hydra endpoints and util to use.
@@ -26,4 +24,9 @@ public static class Endpoints
     /// Retrives Hydra account information.
     /// </summary>
     public static readonly HydraProdEndpoint MyAccount = new("/accounts/me");
+
+    /// <summary>
+    /// Retrives Hydra account information.
+    /// </summary>
+    public static readonly HydraDokkenEndpoint AccountLookup = new("/accounts/");
 }

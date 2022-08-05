@@ -12,8 +12,8 @@ public class HydraApiRequest : RestRequest
 {
     public HydraEndpoint Endpoint { get; init; }
 
-    public HydraApiRequest(HydraEndpoint endpoint, Method method, Parameter? parameter = null) 
-        : base(endpoint.BaseUrl + endpoint.Path, method)
+    public HydraApiRequest(HydraEndpoint endpoint, Method method, Parameter? parameter = null, string? urlExtension = null) 
+        : base(endpoint.BaseUrl + endpoint.Path + urlExtension, method)
     {
         Endpoint = endpoint;
 
@@ -21,8 +21,8 @@ public class HydraApiRequest : RestRequest
             AddParameter(parameter);
     }
 
-    public HydraApiRequest(HydraEndpoint endpoint, Method method, ParametersCollection parameters) 
-        : base(endpoint.BaseUrl + endpoint.Path, method)
+    public HydraApiRequest(HydraEndpoint endpoint, Method method, ParametersCollection parameters, string? urlExtension = null) 
+        : base(endpoint.BaseUrl + endpoint.Path + urlExtension, method)
     {
         Endpoint = endpoint;
 

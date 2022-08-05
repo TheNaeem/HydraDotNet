@@ -19,12 +19,9 @@ public class HydraAuthenticator : IAuthenticator
         if (!string.IsNullOrEmpty(hydraRequest.Endpoint.ApiKey))
             request.AddOrUpdateHeader("x-hydra-api-key", hydraRequest.Endpoint.ApiKey);
 
-        var token = HydraAuth?.AccessToken;
-
-        if (HydraAuth is not null &&
-            !string.IsNullOrEmpty(token))
+        if (HydraAuth is not null)
         {
-            request.AddOrUpdateHeader("X-Hydra-Access-Token", token);
+            request.AddOrUpdateHeader("X-Hydra-Access-Token", hydraRequest.Endpoint.UseNetworkToken ? HydraAuth.NetworkToken : HydraAuth.Token);
         }
 
         return new();
