@@ -11,6 +11,9 @@ namespace HydraDotNet.Core;
 
 public class HydraClient
 {
+    public string? Username { get; set; }
+    public string? AccountId { get; set; }
+
     private RestClient Client { get; set; }
     private HydraClientConfiguration Config { get; set; }
     private EpicAuthContainer EpicAuth { get; set; }
@@ -42,7 +45,7 @@ public class HydraClient
     /// <param name="onLoginSuccessful">Optional: Executes after logging in successfully.</param>
     /// <param name="onLoginFailed">Optional: Executes if logging in fails. If this is not passed in then an exception will be thrown on failure.</param>
     /// <returns></returns>
-    public async Task LoginAsync(Action<HydraApiResponse>? onLoginSuccessful = null, Action<HydraApiResponse, HttpStatusCode, Exception>? onLoginFailed = null)
+    public async Task LoginAsync(Action<WarnerAccount>? onLoginSuccessful = null, Action<HydraApiResponse?, HttpStatusCode?, Exception>? onLoginFailed = null)
     {
         var response = await GetAccountAccessInfoAsync();
 
@@ -63,8 +66,26 @@ public class HydraClient
         if (Client.Authenticator is HydraAuthenticator authenticator)
             authenticator.SetAuthContainer(auth);
 
+        var account = await GetAccountAsync();
+
+        if (account is null)
+        {
+            var ex = new TaskCanceledException($"Could not retrieve account information.");
+
+            if (onLoginFailed is null)
+                throw ex;
+
+            onLoginFailed(null, null, ex);
+
+            return;
+        }
+
+        Username = account.username;
+        AccountId = account.id;
+
+
         if (onLoginSuccessful is not null)
-            onLoginSuccessful(response);
+            onLoginSuccessful(account);
     }
 
     /// <summary>

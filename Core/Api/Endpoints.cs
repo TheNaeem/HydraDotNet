@@ -29,4 +29,9 @@ public static class Endpoints
     /// Retrives Hydra account information.
     /// </summary>
     public static readonly HydraDokkenEndpoint AccountLookup = new("/accounts/");
+
+    /// <summary>
+    /// ???
+    /// </summary>
+    public static readonly HydraDokkenEndpoint Preferences = new("/objects/preferences/unique/");
 }
