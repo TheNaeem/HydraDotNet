@@ -3,7 +3,7 @@ using RestSharp;
 
 namespace HydraDotNet.Core.Authentication;
 
-public static class Epic
+public static class EpicAuthUtil
 {
     private static RestClient ExternalTokenClient = new("https://api.epicgames.dev/epic/oauth/v1/token");
     private static RestClient AccessTokenClient = new("https://account-public-service-prod.ol.epicgames.com/account/api/oauth/token");

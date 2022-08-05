@@ -3,9 +3,8 @@ using Newtonsoft.Json;
 using HydraDotNet.Core.Encoding;
 using System.Net;
 using System.Collections.Generic;
-using System;
 
-namespace HydraDotNet.Core.Endpoints;
+namespace HydraDotNet.Core.Api;
 
 /// <summary>
 /// This classes main purpose is to handle binary responses if necessary.
@@ -40,7 +39,7 @@ public class HydraApiResponse
     /// <returns>An instance of the type passed into the function. Can return default.</returns>
     public T? GetContent<T>() where T : class, new()
     {
-        if (!IsBinary && !IsJSON) return default(T);
+        if (!IsBinary && !IsJSON) return default;
 
         if (IsJSON)
         {

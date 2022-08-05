@@ -1,6 +1,6 @@
-﻿using HydraDotNet.Core.Authentication;
+﻿using HydraDotNet.Core.Api;
+using HydraDotNet.Core.Authentication;
 using HydraDotNet.Core.Encoding;
-using HydraDotNet.Core.Endpoints;
 using HydraDotNet.Core.Models;
 using RestSharp;
 using System;
@@ -11,23 +11,9 @@ namespace HydraDotNet.Core;
 
 public class HydraClient
 {
-    private const string _DEFAULT_HYDRA_HOST = "https://dokken-api.wbagora.com";
-    private const string _SERVER_API_KEY = "51586fdcbd214feb84b0e475b130fce0";
-
-    private string? _overrideApiKey;
-    private RestClient _client;
-    private HydraClientConfiguration _config;
-    private EpicAuthContainer _auth;
-
-    public string ApiKey 
-    { 
-        get
-        {
-            if (string.IsNullOrEmpty(_overrideApiKey))
-                return _SERVER_API_KEY;
-            else return _overrideApiKey;
-        }
-    }
+    private RestClient Client { get; set; }
+    private HydraClientConfiguration Config { get; set; }
+    private EpicAuthContainer EpicAuth { get; set; }
 
     /// <summary>
     /// Hydra client constructor.
@@ -35,19 +21,18 @@ public class HydraClient
     /// <param name="epicAuth">Container with external Epic games authentication information.</param>
     /// <param name="config">Optional: Configuration for Hydra client.</param>
     /// <param name="apiKey">Optional: Overrides the api key.</param>
-    public HydraClient(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null, string? apiKey = null)
+    public HydraClient(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null)
     {
-        _auth = epicAuth;
-        _overrideApiKey = apiKey;
+        EpicAuth = epicAuth;
 
         if (config is null) config = new();
 
-        _config = config;
+        Config = config;
 
-        _client = new RestClient(_DEFAULT_HYDRA_HOST)
+        Client = new RestClient()
         {
-            Authenticator = new HydraAuthenticator(this),
-            AcceptedContentTypes = new[] { _config.ForceJSONRequest ? "application/json" : "application/x-ag-binary" }
+            Authenticator = new HydraAuthenticator(),
+            AcceptedContentTypes = new[] { Config.ForceJSONRequest ? "application/json" : "application/x-ag-binary" }
         };
     }
 
@@ -57,68 +42,107 @@ public class HydraClient
     /// <param name="onLoginSuccessful">Optional: Executes after logging in successfully.</param>
     /// <param name="onLoginFailed">Optional: Executes if logging in fails. If this is not passed in then an exception will be thrown on failure.</param>
     /// <returns></returns>
-    public async Task LoginAsync(Action? onLoginSuccessful = null, Action<string?, HttpStatusCode, Exception>? onLoginFailed = null)
+    public async Task LoginAsync(Action<HydraApiResponse>? onLoginSuccessful = null, Action<HydraApiResponse, HttpStatusCode, Exception>? onLoginFailed = null)
     {
-        var body = new HydraAccessRequestBody();
-        body.auth.epic = _auth.AccessToken;
+        var response = await GetAccountAccessInfoAsync();
 
-        await using var encoder = new HydraEncoder();
-        encoder.WriteValue(body);
+        var auth = new HydraAuthContainer(this);
 
-        var accessEndpoint = new HydraEndpoint("/access", await encoder.GetBufferAsync(), Method.Post);
-
-        var response = await DoRequestAsync(accessEndpoint);
-
-        if (response.StatusCode != HttpStatusCode.OK)
+        if (response.StatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(auth.AccessToken)) // do this to test that everything is right
         {
             var ex = new TaskCanceledException($"Access token request unsuccessful with response status code {response.StatusCode}");
 
             if (onLoginFailed is null)
                 throw ex;
 
-            onLoginFailed(response.GetContentString(), response.StatusCode, ex);
+            onLoginFailed(response, response.StatusCode, ex);
 
             return;
         }
 
+        if (Client.Authenticator is HydraAuthenticator authenticator)
+            authenticator.SetAuthContainer(auth);
+
         if (onLoginSuccessful is not null)
-            onLoginSuccessful();
+            onLoginSuccessful(response);
+    }
+
+    /// <summary>
+    /// Gets the response for the /access endpoint which contains account and player data.
+    /// </summary>
+    /// <returns></returns>
+    public HydraApiResponse GetAccountAccessInfo()
+    {
+        var body = new HydraAccessRequestBody();
+        body.auth.epic = EpicAuth.AccessToken;
+
+        using var encoder = new HydraEncoder();
+        encoder.WriteValue(body);
+
+        var request = Endpoints.Access.CreateRequest(encoder.GetBuffer(), Method.Post);
+        return DoRequest(request);
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves sensitive account information.
+    /// </summary>
+    /// <returns>Account data. Can be null.</returns>
+    public async Task<WarnerAccount?> GetAccountAsync()
+    {
+        var req = Endpoints.MyAccount.CreateRequest();
+
+        var ret = await DoRequestAsync(req);
+
+        return ret.GetContent<WarnerAccount>();
+    }
+
+    /// <summary>
+    /// Asynchronously gets the response for the /access endpoint which contains account and player data.
+    /// </summary>
+    /// <returns></returns>
+    public async ValueTask<HydraApiResponse> GetAccountAccessInfoAsync()
+    {
+        var body = new HydraAccessRequestBody();
+        body.auth.epic = EpicAuth.AccessToken;
+
+        await using var encoder = new HydraEncoder();
+        encoder.WriteValue(body);
+
+        var request = Endpoints.Access.CreateRequest(await encoder.GetBufferAsync(), Method.Post);
+        return await DoRequestAsync(request);
     }
 
     /// <summary>
     /// Executes a request to a Hydra endpoint.
     /// </summary>
-    /// <param name="endpoint">Endpoint to execute the request upon.</param>
+    /// <param name="req">Endpoint to execute the request upon.</param>
     /// <returns>Response from the endpoint.</returns>
-    public HydraApiResponse DoRequest(HydraEndpoint endpoint)
+    public HydraApiResponse DoRequest(HydraApiRequest req)
     {
-        var restResponse = endpoint.GetResponse(_client);
-
+        var restResponse = req.GetResponse(Client);
         return new(restResponse);
     }
 
     /// <summary>
     /// Asynchronously executes a request to a Hydra endpoint.
     /// </summary>
-    /// <param name="endpoint">Endpoint to execute the request upon.</param>
+    /// <param name="req">Request to execute.</param>
     /// <returns>Response from the endpoint.</returns>
-    public async ValueTask<HydraApiResponse> DoRequestAsync(HydraEndpoint endpoint)
+    public async ValueTask<HydraApiResponse> DoRequestAsync(HydraApiRequest req)
     {
-        var restResponse = await endpoint.GetResponseAsync(_client);
-
+        var restResponse = await req.GetResponseAsync(Client);
         return new(restResponse);
     }
 
     /// <summary>
     /// Executes a request to a Hydra endpoint.
     /// </summary>
-    /// <param name="endpoint">Endpoint to execute the request upon.</param>
+    /// <param name="req">Request to execute.</param>
     /// <param name="response">Response from the endpoint.</param>
     /// <returns>If the response returned an OK status code.</returns>
-    public bool TryDoRequest(HydraEndpoint endpoint, out HydraApiResponse response)
+    public bool TryDoRequest(HydraApiRequest req, out HydraApiResponse response)
     {
-        response = DoRequest(endpoint);
-
-        return response.StatusCode == System.Net.HttpStatusCode.OK;
+        response = DoRequest(req);
+        return response.StatusCode == HttpStatusCode.OK;
     }
 }

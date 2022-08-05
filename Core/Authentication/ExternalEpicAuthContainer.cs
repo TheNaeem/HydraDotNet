@@ -14,12 +14,12 @@ public class ExternalEpicAuthContainer : EpicAuthContainer
     {
         _scope = "basic_profile friends_list presence openid";
 
-        var exchangeCode = Epic.GetExchangeCode(launcherAuthContainer.AccessToken);
+        var exchangeCode = EpicAuthUtil.GetExchangeCode(launcherAuthContainer.AccessToken);
 
         if (string.IsNullOrEmpty(exchangeCode))
             throw new NullReferenceException("Could not retrieve exchange code with launcher access token.");
 
-        var externalAuth = Epic.GetExternalAuth(exchangeCode, authClient, _scope);
+        var externalAuth = EpicAuthUtil.GetExternalAuth(exchangeCode, authClient, _scope);
 
         if (externalAuth is null || string.IsNullOrEmpty(externalAuth.refresh_token))
         {

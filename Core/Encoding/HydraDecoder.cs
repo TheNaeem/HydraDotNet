@@ -1,6 +1,7 @@
 ﻿using HydraDotNet.Core.Compression;
 using HydraDotNet.Core.Objects;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -101,20 +102,73 @@ public class HydraDecoder : IDisposable
                 {
                     var elementType = prop.PropertyType.GetElementType();
 
-                    if (elementType is null)
-                        throw new NullReferenceException("Element type is null despite the property being an array.");
+                    if (elementType is null) continue;
 
                     var objArr = (Array)obj;
                     var newArray = Array.CreateInstance(elementType, objArr.Length);
 
-                    objArr.CopyTo(newArray, 0);
+                    for (int i = 0; i < objArr.Length; i++)
+                    {
+                        var element = objArr.GetValue(i);
+
+                        if (element is not Dictionary<object, object?> val)
+                        {
+                            newArray.SetValue(element, i);
+                            continue;
+                        }
+
+                        var newElement = Activator.CreateInstance(elementType);
+
+                        if (newElement is not null)
+                        {
+                            ReadToObject(ref newElement, val);
+                            newArray.SetValue(newElement, i);
+                        }
+                        else continue;
+                    }
 
                     prop.SetValue(baseObject, newArray);
-                    return;
+                    continue;
+                }
+                else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    if (obj is not Array objArr)
+                        continue;
+
+                    var newList = Activator.CreateInstance(prop.PropertyType, objArr.Length) as IList;
+
+                    if (newList is null) 
+                        continue;
+
+                    var elementType = prop.PropertyType.GetGenericArguments()[0];
+
+                    foreach (var i in objArr)
+                    {
+                        if (i is not Dictionary<object, object?> val)
+                        {
+                            newList.Add(i);
+                            continue;
+                        }
+
+                        if (elementType is not null)
+                        {
+                            var element = Activator.CreateInstance(elementType);
+
+                            if (element is not null)
+                            {
+                                ReadToObject(ref element, val);
+                                newList.Add(element);
+                            }
+                            else continue;
+                        }
+                    }
+
+                    prop.SetValue(baseObject, newList);
+                    continue;
                 }
 
                 prop.SetValue(baseObject, obj);
-                return;
+                continue;
             }
 
             var objectVal = prop.GetValue(baseObject);

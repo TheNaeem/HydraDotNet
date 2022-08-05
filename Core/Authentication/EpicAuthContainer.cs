@@ -3,27 +3,12 @@ using System.Diagnostics;
 
 namespace HydraDotNet.Core.Authentication;
 
-public class EpicAuthContainer
+public class EpicAuthContainer : HydraAuthContainer
 {
     protected Action<string>? _onRefreshTokenUpdated;
     protected string? _scope;
-    protected string? _accessToken;
-    public string AccessToken
-    {
-        get
-        {
-            if (Sw.Elapsed >= Expiration)
-            {
-                UpdateToken();
-            }
-
-            return _accessToken ?? string.Empty;
-        }
-    }
 
     protected string RefreshToken { get; set; }
-    private Stopwatch Sw { get; set; }
-    private TimeSpan Expiration { get; set; }
     private string AuthClient { get; set; }
 
     protected EpicAuthContainer(string authClient)
@@ -50,9 +35,9 @@ public class EpicAuthContainer
         UpdateToken();
     }
 
-    protected void UpdateToken()
+    public override void UpdateToken()
     {
-        var refreshResponse = Epic.GetAccessFromRefresh(RefreshToken, AuthClient, _scope);
+        var refreshResponse = EpicAuthUtil.GetAccessFromRefresh(RefreshToken, AuthClient, _scope);
 
         if (refreshResponse is null ||
             string.IsNullOrEmpty(refreshResponse.access_token) ||
