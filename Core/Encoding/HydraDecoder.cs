@@ -220,7 +220,7 @@ public class HydraDecoder : IDisposable
             0x33 => _buf.Read(_buf.Read<byte>()),
             0x34 => _buf.Read(_buf.Read<ushort>()),
             0x35 => _buf.Read(_buf.Read<int>()),
-            0x40 => DateTimeOffset.FromUnixTimeSeconds(_buf.Read<int>()).DateTime,
+            0x40 => DateTimeOffset.FromUnixTimeSeconds(_buf.ReadUInt()).DateTime,
             0x50 => ReadArray(_buf.Read<byte>()),
             0x51 => ReadArray(_buf.ReadUShort()),
             0x52 => ReadArray(_buf.Read<int>()),

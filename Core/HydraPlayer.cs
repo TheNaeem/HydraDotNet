@@ -1,10 +1,11 @@
 ﻿using HydraDotNet.Core.Api;
 using HydraDotNet.Core.Authentication;
+using System.Threading.Tasks;
 
 namespace HydraDotNet.Core;
 
 /// <summary>
-/// A wrapper for the Hydra client providing player data.
+/// A wrapper for the Hydra client providing player data for *CENSORED*
 /// </summary>
 public class HydraPlayer : HydraClient
 {
@@ -18,11 +19,23 @@ public class HydraPlayer : HydraClient
     {
     }
 
-    public void Test()
+    /// <summary>
+    /// Asynchronously retrieves equipped items.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<HydraApiResponse> GetEquippedItemsAsync()
     {
         var request = Endpoints.Preferences.CreateRequest(urlExtension: $"{AccountId}/{AccountId}");
-        var response = DoRequest(request);
+        return await DoRequestAsync(request);
+    }
 
-        System.Console.WriteLine(response.GetContentString());
+    /// <summary>
+    /// Retrieves equipped items.
+    /// </summary>
+    /// <returns></returns>
+    public HydraApiResponse GetEquippedItems()
+    {
+        var request = Endpoints.Preferences.CreateRequest(urlExtension: $"{AccountId}/{AccountId}");
+        return DoRequest(request);
     }
 }
