@@ -13,11 +13,11 @@ public class HydraAccessRequestBody
         "maintenance",
         "wb_network"
     };
-}
 
-public class HydraAccessRequestAuth
-{
-    public string? epic { get; set; }
-    public bool fail_on_missing { get; set; } = false;
+    public class HydraAccessRequestAuth
+    {
+        public string? epic { get; set; }
+        public bool fail_on_missing { get; set; } = false;
+    }
 }
 

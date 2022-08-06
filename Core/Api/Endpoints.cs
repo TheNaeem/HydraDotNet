@@ -31,7 +31,19 @@ public static class Endpoints
     public static readonly HydraDokkenEndpoint AccountLookup = new("/accounts/");
 
     /// <summary>
-    /// ???
+    /// Equipped items.
     /// </summary>
     public static readonly HydraDokkenEndpoint Preferences = new("/objects/preferences/unique/");
+
+    /// <summary>
+    /// Incoming invites.
+    /// </summary>
+    public static readonly HydraProdEndpoint IncomingInvites = new("/friends/me/invitations/incoming");
+
+    /// <summary>
+    /// All item slugs.
+    /// </summary>
+    public static readonly HydraDokkenEndpoint GetItemSlugs = new("/ssc/invoke/get_item_slugs");
+
+    public static readonly HydraDokkenEndpoint Batch = new("/batch");
 }

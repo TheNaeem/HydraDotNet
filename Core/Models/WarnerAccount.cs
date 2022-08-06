@@ -37,47 +37,46 @@ public class WarnerAccount
     public DateTime last_login { get; set; }
     public DateTime created_at { get; set; }
     public GameLink[]? game_links { get; set; }
+
+    public class Avatar
+    {
+        public string? name { get; set; }
+        public string? image_url { get; set; }
+        public string? slug { get; set; }
+    }
+
+    public class EpicGamesLink
+    {
+        public string? auth_id { get; set; }
+        public string? last_seen_username { get; set; }
+        public DateTime updated_at { get; set; }
+        public object? pending { get; set; }
+    }
+
+    public class GameLink
+    {
+        public string? game { get; set; }
+        public string? public_id { get; set; }
+        public string? last_seen_platform { get; set; }
+        public DateTime last_game_login { get; set; }
+        public DateTime? last_accessed { get; set; }
+    }
+
+    public class SteamLink
+    {
+        public string? auth_id { get; set; }
+        public string? last_seen_username { get; set; }
+        public DateTime updated_at { get; set; }
+        public object? pending { get; set; }
+    }
+
+    public class TwitchLink
+    {
+        public string? auth_id { get; set; }
+        public string? last_seen_username { get; set; }
+        public DateTime updated_at { get; set; }
+        public object? pending { get; set; }
+        public DateTime created_at { get; set; }
+    }
+
 }
-
-public class Avatar
-{
-    public string? name { get; set; }
-    public string? image_url { get; set; }
-    public string? slug { get; set; }
-}
-
-public class EpicGamesLink
-{
-    public string? auth_id { get; set; }
-    public string? last_seen_username { get; set; }
-    public DateTime updated_at { get; set; }
-    public object? pending { get; set; }
-}
-
-public class GameLink
-{
-    public string? game { get; set; }
-    public string? public_id { get; set; }
-    public string? last_seen_platform { get; set; }
-    public DateTime last_game_login { get; set; }
-    public DateTime? last_accessed { get; set; }
-}
-
-public class SteamLink
-{
-    public string? auth_id { get; set; }
-    public string? last_seen_username { get; set; }
-    public DateTime updated_at { get; set; }
-    public object? pending { get; set; }
-}
-
-public class TwitchLink
-{
-    public string? auth_id { get; set; }
-    public string? last_seen_username { get; set; }
-    public DateTime updated_at { get; set; }
-    public object? pending { get; set; }
-    public DateTime created_at { get; set; }
-}
-
-
