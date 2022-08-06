@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using HydraDotNet.Core.Encoding;
 using System.Net;
 using System.Collections.Generic;
+using System.Collections;
+using System;
 
 namespace HydraDotNet.Core.Api;
 
@@ -51,14 +53,22 @@ public class HydraApiResponse
 
         var dict = GetContent();
 
-        if (dict is null) return default;
+        if (dict is not null)
+        {
+            var ret = new T();
+            var obj = (object)ret;
 
-        var ret = new T();
-        var obj = (object)ret;
+            HydraDecoder.ReadToObject(ref obj, dict);
 
-        HydraDecoder.ReadToObject(ref obj, dict);
+            return ret;
+        }
 
-        return ret;
+        if (!IsBinary || DecodedContent is not Array objArr)
+        {
+            return default;
+        }
+
+        return HydraDecoder.ReadToList(objArr, typeof(T)) as T;
     }
 
     /// <summary>
@@ -79,7 +89,7 @@ public class HydraApiResponse
     {
         if (IsBinary)
         {
-            if (DecodedContent is not Dictionary<object, object?> dict)
+            if (DecodedContent is not Dictionary<object, object?> dict )
                 return default;
 
             return dict;

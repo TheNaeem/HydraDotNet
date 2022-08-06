@@ -3,6 +3,7 @@ using HydraDotNet.Core.Authentication;
 using HydraDotNet.Core.Encoding;
 using HydraDotNet.Core.Models;
 using RestSharp;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace HydraDotNet.Core;
@@ -78,6 +79,13 @@ public class HydraPlayer : HydraClient
     {
         var req = Endpoints.GetItemSlugs.CreateRequest();
         return (await DoRequestAsync(req)).GetContent<ItemSlugsArray>();
+    }
+
+    public async Task<List<PlayerInventoryItem>?> GetInventoryAsync()
+    {
+        var request = Endpoints.Inventory.CreateRequest();
+        var arr = new PlayerInventoryItem[] { };
+        return (await DoRequestAsync(request)).GetContent<List<PlayerInventoryItem>>();
     }
 
     /// <summary>

@@ -45,5 +45,10 @@ public static class Endpoints
     /// </summary>
     public static readonly HydraDokkenEndpoint GetItemSlugs = new("/ssc/invoke/get_item_slugs");
 
+    /// <summary>
+    /// Gets inventory.
+    /// </summary>
+    public static readonly HydraDokkenEndpoint Inventory = new("/inventory/items");
+
     public static readonly HydraDokkenEndpoint Batch = new("/batch");
 }

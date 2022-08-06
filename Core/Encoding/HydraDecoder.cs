@@ -79,6 +79,48 @@ public class HydraDecoder : IDisposable
     }
 
     /// <summary>
+    /// Reads an array of Hydra objects into a List. Also used for reading decoded responses of an array.
+    /// </summary>
+    /// <param name="baseArray">Hydra objects array.</param>
+    /// <param name="listType">The type of the list to be created.</param>
+    /// <returns>Created list. Can be null.</returns>
+    public static IList? ReadToList(Array baseArray, Type listType)
+    {
+        if (listType.GetGenericTypeDefinition() != typeof(List<>))
+            return default;
+
+        var ret = Activator.CreateInstance(listType, baseArray.Length) as IList;
+
+        if (ret is null)
+            return default;
+
+        var elementType = listType.GetGenericArguments()[0];
+
+        if (elementType is null)
+            return default;
+
+        foreach (var i in baseArray)
+        {
+            if (i is not Dictionary<object, object?> val)
+            {
+                ret.Add(i);
+                continue;
+            }
+
+            var element = Activator.CreateInstance(elementType);
+
+            if (element is not null)
+            {
+                ReadToObject(ref element, val);
+                ret.Add(element);
+            }
+            else continue;
+        }
+
+        return ret;
+    }
+
+    /// <summary>
     /// Reads a Hydra decoded Dictionary map to an object with a matching type. Main purpose is for data models. 
     /// </summary>
     /// <param name="baseObject">Object to be read to.</param>
@@ -135,33 +177,7 @@ public class HydraDecoder : IDisposable
                     if (obj is not Array objArr)
                         continue;
 
-                    var newList = Activator.CreateInstance(prop.PropertyType, objArr.Length) as IList;
-
-                    if (newList is null) 
-                        continue;
-
-                    var elementType = prop.PropertyType.GetGenericArguments()[0];
-
-                    foreach (var i in objArr)
-                    {
-                        if (i is not Dictionary<object, object?> val)
-                        {
-                            newList.Add(i);
-                            continue;
-                        }
-
-                        if (elementType is not null)
-                        {
-                            var element = Activator.CreateInstance(elementType);
-
-                            if (element is not null)
-                            {
-                                ReadToObject(ref element, val);
-                                newList.Add(element);
-                            }
-                            else continue;
-                        }
-                    }
+                    var newList = ReadToList(objArr, prop.PropertyType);
 
                     prop.SetValue(baseObject, newList);
                     continue;
