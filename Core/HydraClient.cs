@@ -4,8 +4,10 @@ using HydraDotNet.Core.Encoding;
 using HydraDotNet.Core.Models;
 using RestSharp;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using HydraDotNet.Core.Extensions;
 
 namespace HydraDotNet.Core;
 
@@ -48,10 +50,14 @@ public class HydraClient
     public async Task LoginAsync(Action<WarnerAccount>? onLoginSuccessful = null, Action<HydraApiResponse?, HttpStatusCode?, Exception>? onLoginFailed = null)
     {
         var response = await GetAccountAccessInfoAsync();
+        var accountAccess = response.GetContent();
 
         var auth = new HydraAuthContainer(this);
 
-        if (response.StatusCode != HttpStatusCode.OK || string.IsNullOrEmpty(auth.NetworkToken) || string.IsNullOrEmpty(auth.Token)) // do this to test that everything is right
+        if (accountAccess is null ||
+            response.StatusCode != HttpStatusCode.OK ||
+            string.IsNullOrEmpty(auth.NetworkToken) ||
+            string.IsNullOrEmpty(auth.Token)) // do this to test that everything is right
         {
             var ex = new TaskCanceledException($"Access token request unsuccessful with response status code {response.StatusCode}");
 
@@ -81,7 +87,12 @@ public class HydraClient
         }
 
         Username = account.username;
-        AccountId = account.id;
+
+        if (accountAccess.TryGetNested("account", out var accountData) &&
+            accountData.TryGetValueAs("id", out string? id))
+        {
+            AccountId = id;
+        }
 
 
         if (onLoginSuccessful is not null)
@@ -127,7 +138,7 @@ public class HydraClient
         var body = new HydraAccountLookupRequestBody()
         {
             _model_update = true,
-            operations = new string[][] { new[] { "set", "data.LastLoginPlatform", "EPlatform::PC_Epic" } }  
+            operations = new string[][] { new[] { "set", "data.LastLoginPlatform", "EPlatform::PC_Epic" } }
         };
 
         await using var encoder = new HydraEncoder();

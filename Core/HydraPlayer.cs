@@ -1,4 +1,5 @@
-﻿using HydraDotNet.Core.Authentication;
+﻿using HydraDotNet.Core.Api;
+using HydraDotNet.Core.Authentication;
 
 namespace HydraDotNet.Core;
 
@@ -12,9 +13,16 @@ public class HydraPlayer : HydraClient
     /// </summary>
     /// <param name="epicAuth">Container with external Epic games authentication information.</param>
     /// <param name="config">Optional: Configuration for Hydra client.</param>
-    /// <param name="apiKey">Optional: Overrides the api key.</param>
     public HydraPlayer(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null) 
         : base(epicAuth, config)
     {
+    }
+
+    public void Test()
+    {
+        var request = Endpoints.Preferences.CreateRequest(urlExtension: $"{AccountId}/{AccountId}");
+        var response = DoRequest(request);
+
+        System.Console.WriteLine(response.GetContentString());
     }
 }
