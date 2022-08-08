@@ -50,5 +50,19 @@ public static class Endpoints
     /// </summary>
     public static readonly HydraDokkenEndpoint Inventory = new("/inventory/items");
 
+    /// <summary>
+    /// Files storage.
+    /// </summary>
+    public static readonly HydraDokkenEndpoint FileStorage = new("/file_storage");
+
+    /// <summary>
+    /// Selects character and skin before a match.
+    /// </summary>
+    public static readonly HydraDokkenEndpoint CharacterSelect = new("/ssc/invoke/select_character_and_skin");
+
+    public static readonly HydraDokkenEndpoint CatalogProducts = new("/commerce/catalog/me/products");
+
+    public static readonly HydraDokkenEndpoint ConfigurationSdk = new("/configuration/sdk");
+
     public static readonly HydraDokkenEndpoint Batch = new("/batch");
 }

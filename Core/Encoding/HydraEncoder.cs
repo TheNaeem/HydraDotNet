@@ -229,7 +229,12 @@ public class HydraEncoder : IDisposable, IAsyncDisposable
             if (val is null) continue;
 
             WriteValue(prop.Name);
-            WriteValue(val);
+
+            if (val is DateTime time)
+            {
+                WriteValue((uint)((DateTimeOffset)time).ToUnixTimeSeconds());
+            }
+            else WriteValue(val);
         }
     }
 

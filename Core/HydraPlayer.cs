@@ -88,6 +88,11 @@ public class HydraPlayer : HydraClient
         return (await DoRequestAsync(request)).GetContent<List<PlayerInventoryItem>>();
     }
 
+    public async Task Test()
+    {
+        var request = Endpoints.CharacterSelect.CreateRequest(Method.Put);
+    }
+
     /// <summary>
     /// Retrieves equipped items.
     /// </summary>
