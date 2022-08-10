@@ -13,7 +13,7 @@ public class EpicAuthContainer : HydraAuthContainer
     {
         get
         {
-            if (Sw.Elapsed >= Expiration)
+            if (HasAccessTokenExpired())
             {
                 UpdateToken();
             }

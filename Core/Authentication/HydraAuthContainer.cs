@@ -3,6 +3,7 @@ using HydraDotNet.Core.Models;
 using RestSharp;
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace HydraDotNet.Core.Authentication;
 
@@ -16,7 +17,7 @@ public class HydraAuthContainer : IAuthContainer
     {
         get
         {
-            if (Sw.Elapsed >= Expiration)
+            if (HasAccessTokenExpired())
             {
                 UpdateToken();
             }
@@ -64,6 +65,9 @@ public class HydraAuthContainer : IAuthContainer
 
         return response.GetContent<HydraAuthTokenResponse>();
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool HasAccessTokenExpired() => Sw.Elapsed >= Expiration;
 
     public virtual void UpdateToken()
     {

@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using HydraDotNet.Core.Encoding;
 using System.Net;
 using System.Collections.Generic;
-using System.Collections;
 using System;
 
 namespace HydraDotNet.Core.Api;
