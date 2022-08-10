@@ -22,6 +22,16 @@ public class HydraBufferWriter : BinaryWriter
         base.Write(view);
     }
 
+    /// <summary>
+    /// This will NOT output a datetime value that can be read by Hydras decoder. It will read it as an incorrect value. Needs to be fixed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(DateTime val)
+    {
+        var unix = ((DateTimeOffset)val).ToUnixTimeSeconds();
+        Write((uint)unix);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override void Write(ushort val) => base.Write((ushort)((ushort)((val & 0xff) << 8) | ((val >> 8) & 0xff)));
 

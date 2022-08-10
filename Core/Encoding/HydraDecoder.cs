@@ -135,17 +135,7 @@ public class HydraDecoder : IDisposable
 
         foreach (var prop in type.GetProperties())
         {
-            var propName = prop.Name;
-            if (propName.StartsWith('_')) // for those types with numbers for names  
-            {
-                ReadOnlySpan<char> trimmed = propName;
-                trimmed = trimmed.TrimStart('_');
-
-                if (int.TryParse(trimmed, out var _))
-                    propName = trimmed.ToString();
-            }
-
-            if (!dict.TryGetValue(propName, out var obj) || obj is null)
+            if (!dict.TryGetValue(prop.Name, out var obj) || obj is null)
                 continue;
 
             if (obj is not Dictionary<object, object?> objDict)

@@ -17,27 +17,20 @@ public class HydraClient
     public string? AccountId { get; set; }
 
     private RestClient Client { get; set; }
-    private HydraClientConfiguration Config { get; set; }
     private EpicAuthContainer EpicAuth { get; set; }
 
     /// <summary>
     /// Hydra client constructor.
     /// </summary>
     /// <param name="epicAuth">Container with external Epic games authentication information.</param>
-    /// <param name="config">Optional: Configuration for Hydra client.</param>
-    /// <param name="apiKey">Optional: Overrides the api key.</param>
-    public HydraClient(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null)
+    public HydraClient(ExternalEpicAuthContainer epicAuth)
     {
         EpicAuth = epicAuth;
-
-        if (config is null) config = new();
-
-        Config = config;
 
         Client = new RestClient()
         {
             Authenticator = new HydraAuthenticator(),
-            AcceptedContentTypes = new[] { Config.ForceJSONRequest ? "application/json" : "application/x-ag-binary" }
+            AcceptedContentTypes = new[] { "application/x-ag-binary" }
         };
     }
 

@@ -56,13 +56,12 @@ public static class Endpoints
     public static readonly HydraDokkenEndpoint FileStorage = new("/file_storage");
 
     /// <summary>
-    /// Selects character and skin before a match.
+    /// Purchasable items.
     /// </summary>
-    public static readonly HydraDokkenEndpoint CharacterSelect = new("/ssc/invoke/select_character_and_skin");
-
     public static readonly HydraDokkenEndpoint CatalogProducts = new("/commerce/catalog/me/products");
 
+    /// <summary>
+    /// Unsure of the purpose of this. Has something to do with server side code deployment.
+    /// </summary>
     public static readonly HydraDokkenEndpoint ConfigurationSdk = new("/configuration/sdk");
-
-    public static readonly HydraDokkenEndpoint Batch = new("/batch");
 }

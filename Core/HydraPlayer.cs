@@ -18,8 +18,8 @@ public class HydraPlayer : HydraClient
     /// </summary>
     /// <param name="epicAuth">Container with external Epic games authentication information.</param>
     /// <param name="config">Optional: Configuration for Hydra client.</param>
-    public HydraPlayer(ExternalEpicAuthContainer epicAuth, HydraClientConfiguration? config = null) 
-        : base(epicAuth, config)
+    public HydraPlayer(ExternalEpicAuthContainer epicAuth) 
+        : base(epicAuth)
     {
     }
 
@@ -50,31 +50,6 @@ public class HydraPlayer : HydraClient
         return await DoRequestAsync(request);
     }
 
-    /// <summary>
-    /// TODO
-    /// </summary>
-    /// <returns></returns>
-    public async Task<HydraApiResponse> GetBatchAsync()
-    {
-        var body = new HydraBatchRequestBody();
-        body.requests = new(1);
-        body.requests.Add(new()
-        {
-            headers = new()
-            {
-                url = $"/profiles/{AccountId}?fields=server_data&fields=data",
-                verb = "GET"
-            }
-        });
-
-        await using var encoder = new HydraEncoder();
-        encoder.WriteValue(body);
-
-        var request = Endpoints.Batch.CreateRequest(await encoder.GetBufferAsync(), Method.Put);
-
-        return await DoRequestAsync(request);
-    }
-
     public async Task<ItemSlugsArray?> GetSlugsAsync()
     {
         var req = Endpoints.GetItemSlugs.CreateRequest();
@@ -86,11 +61,6 @@ public class HydraPlayer : HydraClient
         var request = Endpoints.Inventory.CreateRequest();
         var arr = new PlayerInventoryItem[] { };
         return (await DoRequestAsync(request)).GetContent<List<PlayerInventoryItem>>();
-    }
-
-    public async Task Test()
-    {
-        var request = Endpoints.CharacterSelect.CreateRequest(Method.Put);
     }
 
     /// <summary>

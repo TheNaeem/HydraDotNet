@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HydraDotNet.Core.Encoding;
@@ -171,6 +172,10 @@ public class HydraEncoder : IDisposable, IAsyncDisposable
             case byte[] val:
                 WriteBytes(val);
                 break;
+            case DateTime val:
+                _writer.WriteByte(0x40);
+                _writer.Write(val); // see the summary of this function
+                break;
             case IDictionary val:
                 WriteMap(val);
                 break;
@@ -202,9 +207,9 @@ public class HydraEncoder : IDisposable, IAsyncDisposable
     private void WriteObjectDefault(object obj)
     {
         var type = obj.GetType();
-        var properties = type.GetProperties();
+        var properties = type.GetProperties().Where(x => x.GetValue(obj) is not null);
 
-        var len = properties.Length;
+        var len = properties.Count();
 
         if (len <= byte.MaxValue)
         {
