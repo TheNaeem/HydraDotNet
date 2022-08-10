@@ -9,10 +9,12 @@ public class ExternalEpicAuthContainer : EpicAuthContainer
     /// </summary>
     /// <param name="launcherAuthContainer">Auth container of a launcher client.</param>
     /// <param name="authClient">Auth client that will be generated.</param>
+    /// <param name="scope">The scope of the authorization.</param>
     /// <exception cref="NullReferenceException">Throws if the exchange code can't be retrived.</exception>
-    public ExternalEpicAuthContainer(EpicAuthContainer launcherAuthContainer, string authClient) : base(authClient)
+    public ExternalEpicAuthContainer(EpicAuthContainer launcherAuthContainer, string authClient, string scope = "basic_profile friends_list presence openid")
+        : base(authClient)
     {
-        _scope = "basic_profile friends_list presence openid";
+        _scope = scope;
 
         var exchangeCode = EpicAuthUtil.GetExchangeCode(launcherAuthContainer.AccessToken);
 
