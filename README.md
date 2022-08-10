@@ -1,5 +1,7 @@
 # HydraDotNet
 
+[![NuGet version (HydraDotNet)](https://img.shields.io/nuget/v/HydraDotNet.svg)](https://www.nuget.org/packages/HydraDotNet/)
+
 *This project is not associated with Warner Bros. or Player First Games.*
 
 HydraDotNet is a library used to communicate with and use the Hydra API. HydraDotNet provides support for decoding and encoding data with the Hydra format.
