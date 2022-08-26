@@ -14,6 +14,13 @@ namespace HydraDotNet.Core;
 public class HydraPlayer : HydraClient
 {
     /// <summary>
+    /// Default constructor which will utilize the Steam API to authenticate. Steam must be running in order to work. The steam api DLL will also be downloaded to the executing directory if not already. 
+    /// </summary>
+    public HydraPlayer() : base()
+    {
+    }
+
+    /// <summary>
     /// Hydra player constructor.
     /// </summary>
     /// <param name="epicAuth">Container with external Epic games authentication information.</param>
