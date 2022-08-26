@@ -140,6 +140,8 @@ public class HydraClient : IDisposable
         {
             var body = new HydraEpicAccessRequestBody();
             body.auth.epic = EpicAuth.AccessToken;
+
+            encoder.WriteValue(body);
         }
 
         var request = Endpoints.Access.CreateRequest(encoder.GetBuffer(), Method.Post);
@@ -201,6 +203,8 @@ public class HydraClient : IDisposable
         {
             var body = new HydraEpicAccessRequestBody();
             body.auth.epic = EpicAuth.AccessToken;
+
+            encoder.WriteValue(body);
         }
 
         var request = Endpoints.Access.CreateRequest(await encoder.GetBufferAsync(), Method.Post);
