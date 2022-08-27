@@ -43,7 +43,7 @@ await client.LoginAsync(onLoginFailed: Failed);
 Authenticating with Steam is much more straightforward than Epic, all you have to do is ensure that Steam is running alongside your application, and just use the default constructor for the HydraClient. 
 
 ```csharp
-var client = new HydraClient();
+using var client = new HydraClient();
 
 await client.LoginAsync();
 ```
