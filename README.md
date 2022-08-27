@@ -10,13 +10,13 @@ HydraDotNet is still pretty experimental, so please bring awareness to any issue
 
 Any and all contributions are encouraged.
 
-## Authenticating
+# Authenticating
 
-HydraDotNet currently only supports authenticating with Epic Games. Use a launcherAppClient2 refresh token to do so. See [this](https://github.com/MixV2/EpicResearch) to learn more.
+HydraDotNet currently only supports authenticating with Epic Games and Steam. 
 
-More ways to do so are in consideration for the future, and any contributions for this are greatly encouraged and apprieciated. 
+## Authenticating with Epic
 
-## Usage
+Use a launcherAppClient2 refresh token to do so. See [this](https://github.com/MixV2/EpicResearch) to learn more.
 
 Now that you have your launcher client refresh token, you are in charge of managing it and its lifetime. HydraDotNet provides an `EpicAuthContainer` class with `UpdateToken` and `HasAccessTokenExpired` methods which can do so. 
 
@@ -37,6 +37,18 @@ var client = new HydraClient(externalAuth);
 
 await client.LoginAsync(onLoginFailed: Failed);
 ```
+
+## Authenticating with Steam
+
+Authenticating with Steam is much more straightforward than Epic, all you have to do is ensure that Steam is running alongside your application, and just use the default constructor for the HydraClient. 
+
+```csharp
+var client = new HydraClient();
+
+await client.LoginAsync();
+```
+
+Note that using Steam for authentication will create a Steam API DLL in your applications executing directory. It currently isn't supported for platforms other than x64 Windows, but it'll get added eventually. Contributions are welcome too.
 
 ## Requests
 
