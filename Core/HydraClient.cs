@@ -4,20 +4,47 @@ using HydraDotNet.Core.Encoding;
 using HydraDotNet.Core.Models;
 using RestSharp;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using HydraDotNet.Core.Extensions;
+using System.IO;
 
 namespace HydraDotNet.Core;
 
-public class HydraClient
+public class HydraClient : IDisposable
 {
     public string? Username { get; set; }
     public string? AccountId { get; set; }
 
     private RestClient Client { get; set; }
-    private EpicAuthContainer EpicAuth { get; set; }
+    private EpicAuthContainer? EpicAuth { get; set; }
+
+    private const int AppId = 1818750;
+    private const string SteamApiDownload = "https://cdn.discordapp.com/attachments/817251677086285848/1012577768766177350/steam_api64.dll";
+
+    /// <summary>
+    /// Default constructor which will utilize the Steam API to authenticate. Steam must be running in order to work. The steam api DLL will also be downloaded to the executing directory if not already. 
+    /// </summary>
+    public HydraClient()
+    {
+        if (!File.Exists("steam_api64.dll")) // TODO: cross platform support
+        {
+            var data = new RestClient().DownloadData(new(SteamApiDownload));
+
+            if (data is not null)
+            {
+                File.WriteAllBytes("steam_api64.dll", data);
+            }
+        }
+
+        Steamworks.SteamClient.Init(AppId, true);
+
+        Client = new RestClient()
+        {
+            Authenticator = new HydraAuthenticator(),
+            AcceptedContentTypes = new[] { "application/x-ag-binary" }
+        };
+    }
 
     /// <summary>
     /// Hydra client constructor.
@@ -98,11 +125,24 @@ public class HydraClient
     /// <returns></returns>
     public HydraApiResponse GetAccountAccessInfo()
     {
-        var body = new HydraAccessRequestBody();
-        body.auth.epic = EpicAuth.AccessToken;
-
         using var encoder = new HydraEncoder();
-        encoder.WriteValue(body);
+
+        if (EpicAuth is null)
+        {
+            var body = new HydraSteamAccessRequestBody();
+            var ticket = Steamworks.SteamUser.RequestEncryptedAppTicketAsync().GetAwaiter().GetResult();
+
+            body.auth.steam = Convert.ToHexString(ticket);
+
+            encoder.WriteValue(body);
+        }
+        else
+        {
+            var body = new HydraEpicAccessRequestBody();
+            body.auth.epic = EpicAuth.AccessToken;
+
+            encoder.WriteValue(body);
+        }
 
         var request = Endpoints.Access.CreateRequest(encoder.GetBuffer(), Method.Post);
         return DoRequest(request);
@@ -148,11 +188,24 @@ public class HydraClient
     /// <returns></returns>
     public async ValueTask<HydraApiResponse> GetAccountAccessInfoAsync()
     {
-        var body = new HydraAccessRequestBody();
-        body.auth.epic = EpicAuth.AccessToken;
-
         await using var encoder = new HydraEncoder();
-        encoder.WriteValue(body);
+
+        if (EpicAuth is null)
+        {
+            var body = new HydraSteamAccessRequestBody();
+            var ticket = await Steamworks.SteamUser.RequestEncryptedAppTicketAsync();
+
+            body.auth.steam = Convert.ToHexString(ticket);
+
+            encoder.WriteValue(body);
+        }
+        else
+        {
+            var body = new HydraEpicAccessRequestBody();
+            body.auth.epic = EpicAuth.AccessToken;
+
+            encoder.WriteValue(body);
+        }
 
         var request = Endpoints.Access.CreateRequest(await encoder.GetBufferAsync(), Method.Post);
         return await DoRequestAsync(request);
@@ -191,4 +244,6 @@ public class HydraClient
         response = DoRequest(req);
         return response.StatusCode == HttpStatusCode.OK;
     }
+
+    public void Dispose() => Steamworks.SteamClient.Shutdown();
 }
